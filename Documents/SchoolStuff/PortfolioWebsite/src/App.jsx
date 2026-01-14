@@ -3,11 +3,14 @@ import { Github, Linkedin, Mail } from 'lucide-react';
 import ProjectCard from './components/ProjectCard';
 import ArtCard from './components/ArtCard';
 import ProjectDetailModal from './components/ProjectDetailModal';
+import ArtDetailModal from './components/ArtDetailModal'; 
 
 function App() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeNav, setActiveNav] = useState('home');
   const [selectedProject, setSelectedProject] = useState(null);
+  // NEW: State for tracking which artwork is clicked
+  const [selectedArt, setSelectedArt] = useState(null);
 
   const projects = [
     {
@@ -77,12 +80,20 @@ function App() {
   ];
 
   const artworks = [
-    { title: "Character Models", type: "3D Model" },
-    { title: "Environment Assets", type: "3D Model" },
-    { title: "Game UI Concepts", type: "Concept Art" },
-    { title: "Low-Poly Props", type: "3D Model" },
-    { title: "Lighting Studies", type: "Concept Art" },
-    { title: "Outdoor Objects", type: "3D Model" }
+    { 
+      title: "Character Models", 
+      type: "3D Model", 
+      modelPath: "/models/knightInProg4WellModtests25.glb", 
+      description: "A knight model in progress featuring modular armor design.", 
+      technicalDetails: ["Blender", "GLTF", "3D Model"] 
+    },
+    { 
+      title: "Character Models", 
+      type: "3D Model", 
+      modelPath: "/models/SimpleSlime2.glb", 
+      description: "A simple slime model in progress featuring a modular slime body.", 
+      technicalDetails: ["Blender", "GLTF", "3D Model"] 
+    }
   ];
 
   const filterOptions = ['All', 'Game Dev', 'Software', 'Roblox', 'Java', 'C++'];
@@ -191,17 +202,21 @@ function App() {
         </div>
       </section>
 
-      {/* Art Gallery */}
+      {/* Art Gallery (UPDATED) */}
       <section id="art" className="py-20 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">Art & Assets</h2>
-            <p className="text-gray-400">3D models and concept art created with Blender and Paint.net</p>
+            <p className="text-gray-400">Interactive 3D models and concept art • Click to explore</p>
           </div>
 
           <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
             {artworks.map((art, i) => (
-              <ArtCard key={i} {...art} />
+              <ArtCard 
+                key={i} 
+                {...art} 
+                onClick={() => setSelectedArt(art)} 
+              />
             ))}
           </div>
         </div>
@@ -306,6 +321,7 @@ function App() {
         <p className="text-sm mt-2">Stockton, California | 209-292-7814</p>
       </footer>
 
+      {/* MODALS */}
       {/* Project Detail Modal */}
       {selectedProject && (
         <ProjectDetailModal 
@@ -313,9 +329,16 @@ function App() {
           onClose={() => setSelectedProject(null)} 
         />
       )}
+
+      {/* NEW: Art Detail Modal */}
+      {selectedArt && (
+        <ArtDetailModal 
+          artwork={selectedArt} 
+          onClose={() => setSelectedArt(null)} 
+        />
+      )}
     </div>
   );
 }
 
 export default App;
-

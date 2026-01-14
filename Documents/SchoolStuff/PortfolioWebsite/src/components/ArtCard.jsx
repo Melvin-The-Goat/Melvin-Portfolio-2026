@@ -1,6 +1,9 @@
-const ArtCard = ({ title, type, image }) => {
+const ArtCard = ({ title, type, image, onClick }) => {
   return (
-    <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-purple-500 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+    <div 
+      onClick={onClick}  // <--- THIS WAS MISSING
+      className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-purple-500 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+    >
       <div className="h-64 bg-gradient-to-br from-purple-900/20 to-gray-900 flex items-center justify-center">
         {image ? (
           <img src={image} alt={title} className="w-full h-full object-cover" />
@@ -17,4 +20,3 @@ const ArtCard = ({ title, type, image }) => {
 };
 
 export default ArtCard;
-
