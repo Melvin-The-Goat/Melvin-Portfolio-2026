@@ -7,11 +7,56 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background-color: #050505; /* Deep Space BG */
+  color: white;
 }
 
-* {
-  box-sizing: border-box;
+/* --- The AI Neural Background --- */
+.ai-bg {
+  background-color: #050505;
+  background-image: 
+    radial-gradient(circle at 2px 2px, rgba(14, 165, 233, 0.15) 1px, transparent 0);
+  background-size: 40px 40px;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
 }
 
+/* The "Scanning" Line Animation */
+.ai-bg::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #0ea5e9, transparent);
+  animation: scan 8s linear infinite;
+  opacity: 0.3;
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100vh); }
+  100% { transform: translateY(100vh); }
+}
+
+/* --- Futuristic Scanlines Overlay --- */
+.scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.1) 50%
+  ), linear-gradient(
+    90deg, 
+    rgba(255, 0, 0, 0.03), 
+    rgba(0, 255, 0, 0.01), 
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 4px, 3px 100%;
+  pointer-events: none;
+  z-index: 50; /* Sits above content but below modals */
+}

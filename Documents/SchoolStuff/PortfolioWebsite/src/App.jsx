@@ -1,16 +1,13 @@
 import { useState } from 'react';
 import { Github, Linkedin, Mail } from 'lucide-react';
 import ProjectCard from './components/ProjectCard';
-import ArtCard from './components/ArtCard';
+// Add curly braces { } to match the named export
+import { ArtCarousel } from './components/ArtCarousel';
 import ProjectDetailModal from './components/ProjectDetailModal';
-import ArtDetailModal from './components/ArtDetailModal'; 
 
 function App() {
   const [activeFilter, setActiveFilter] = useState('All');
-  const [activeNav, setActiveNav] = useState('home');
   const [selectedProject, setSelectedProject] = useState(null);
-  // NEW: State for tracking which artwork is clicked
-  const [selectedArt, setSelectedArt] = useState(null);
 
   const projects = [
     {
@@ -83,15 +80,15 @@ function App() {
     { 
       title: "Character Models", 
       type: "3D Model", 
-      modelPath: "/models/knightInProg4WellModtests25.glb", 
-      description: "A knight model in progress featuring modular armor design.", 
+      modelPath: "/models/SimpleSlime2.glb", 
+      description: "A simple slime model in progress featuring a modular slime body and subsurface scattering effects.", 
       technicalDetails: ["Blender", "GLTF", "3D Model"] 
     },
     { 
-      title: "Character Models", 
+      title: "Knight Armor", 
       type: "3D Model", 
-      modelPath: "/models/SimpleSlime2.glb", 
-      description: "A simple slime model in progress featuring a modular slime body.", 
+      modelPath: "/models/knightInProg4WellModtests25.glb", 
+      description: "A knight model in progress featuring modular armor design optimized for game engines.", 
       technicalDetails: ["Blender", "GLTF", "3D Model"] 
     }
   ];
@@ -105,33 +102,38 @@ function App() {
   });
 
   const scrollToSection = (sectionId) => {
-    setActiveNav(sectionId);
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-            MB
+    <div className="min-h-screen text-white overflow-x-hidden selection:bg-[#EC4899] selection:text-white">
+      {/* 1. Global AI Backgrounds */}
+      <div className="ai-bg" />
+      <div className="scanlines" />
+
+      {/* 2. Persona Slanted Navbar */}
+      <nav className="fixed top-0 w-full z-50 p-4 md:p-6 pointer-events-none">
+        <div className="max-w-7xl mx-auto flex justify-between items-center relative pointer-events-auto">
+          {/* Logo */}
+          <div className="bg-[#0EA5E9] -skew-x-12 px-6 py-2 border-r-4 border-[#EC4899] shadow-[4px_4px_0px_0px_rgba(236,72,153,1)] hover:translate-x-1 transition-transform cursor-pointer">
+            <span className="text-2xl font-black italic skew-x-12 block text-white">MB.AI</span>
           </div>
-          <div className="flex gap-8">
+          {/* Menu */}
+          <div className="flex gap-2 bg-white/5 backdrop-blur-md border border-white/10 -skew-x-12 p-1">
             {['Projects', 'Art', 'About'].map((item) => (
               <button
                 key={item}
                 onClick={() => scrollToSection(item.toLowerCase())}
-                className="text-gray-300 hover:text-cyan-400 transition-colors font-medium"
+                className="px-4 md:px-6 py-2 text-gray-300 hover:bg-[#0EA5E9] hover:text-white transition-all duration-200 font-bold uppercase italic skew-x-12 text-sm md:text-base"
               >
                 {item}
               </button>
             ))}
             <a 
-              href="\Resume as of Jan 2026.pdf" 
+              href="/Resume as of Jan 2026.pdf" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-gray-300 hover:text-cyan-400 transition-colors font-medium"
+              className="px-4 md:px-6 py-2 text-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white transition-all duration-200 font-bold uppercase italic skew-x-12 text-sm md:text-base"
             >
               Resume
             </a>
@@ -140,36 +142,29 @@ function App() {
       </nav>
 
       {/* Hero Section */}
-      <section id="home" className="pt-32 pb-20 px-6">
+      <section id="home" className="pt-40 pb-20 px-6 text-center relative z-10">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center space-y-6">
-            <h1 className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent leading-tight">
-              Melvin Boateng
-            </h1>
-            <p className="text-2xl md:text-3xl text-gray-400 font-light">
-              Game Developer & Technical Artist
+          <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter mb-4 text-white drop-shadow-[0_0_15px_rgba(14,165,233,0.5)]">
+            Melvin <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0EA5E9] to-[#EC4899] decoration-[#EC4899] underline-offset-8">Boateng</span>
+          </h1>
+          <p className="font-mono text-[#0EA5E9] uppercase tracking-[0.2em] text-sm md:text-lg mb-8">
+            MSCS • AI Concentration • Technical Artist
+          </p>
+          <div className="inline-block bg-white/5 border border-white/10 p-6 rounded-lg backdrop-blur-sm max-w-2xl">
+            <p className="text-gray-300 text-lg">
+               Building immersive experiences with Lua, Java, and C++ at the University of the Pacific.
             </p>
-            <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-              MS Computer Science Student at University of the Pacific | Building immersive experiences with Lua, Java, and C++
-            </p>
-            <div className="pt-6">
-              <button 
-                onClick={() => scrollToSection('projects')}
-                className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-lg font-semibold text-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all transform hover:scale-105"
-              >
-                View Projects
-              </button>
-            </div>
           </div>
         </div>
       </section>
 
       {/* Projects Section */}
-      <section id="projects" className="py-20 px-6 bg-gray-900/50">
+      <section id="projects" className="py-20 px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Featured Projects</h2>
-            <p className="text-gray-400">Game development, software engineering, and research projects</p>
+          <div className="mb-12 flex items-center gap-4">
+             <div className="h-1 flex-grow bg-gradient-to-r from-transparent to-[#0EA5E9] opacity-50"></div>
+             <h2 className="text-4xl font-black italic uppercase text-white tracking-tighter">Featured Projects</h2>
+             <div className="h-1 flex-grow bg-gradient-to-l from-transparent to-[#0EA5E9] opacity-50"></div>
           </div>
 
           {/* Filter Buttons */}
@@ -178,13 +173,13 @@ function App() {
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-6 py-2 rounded-full font-medium transition-all ${
+                className={`px-6 py-2 font-mono text-sm uppercase tracking-wider border transition-all skew-x-[-12deg] ${
                   activeFilter === filter
-                    ? 'bg-cyan-500 text-white'
-                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    ? 'bg-[#0EA5E9] border-[#0EA5E9] text-white shadow-[4px_4px_0px_0px_#000]'
+                    : 'bg-black/50 border-gray-700 text-gray-400 hover:border-[#0EA5E9] hover:text-[#0EA5E9]'
                 }`}
               >
-                {filter}
+                <div className="skew-x-[12deg]">{filter}</div>
               </button>
             ))}
           </div>
@@ -202,139 +197,80 @@ function App() {
         </div>
       </section>
 
-      {/* Art Gallery (UPDATED) */}
-      <section id="art" className="py-20 px-6">
+      {/* Art Section (Now uses Carousel) */}
+      <section id="art" className="py-20 px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Art & Assets</h2>
-            <p className="text-gray-400">Interactive 3D models and concept art • Click to explore</p>
+          <div className="text-center mb-8">
+             <div className="inline-block bg-[#0EA5E9] -skew-x-12 px-8 py-2">
+                <h2 className="text-3xl font-black italic uppercase text-white skew-x-12">Interactive 3D Lab</h2>
+             </div>
+             <p className="mt-4 text-gray-500 font-mono text-sm">DRAG TO ROTATE • SCROLL TO ZOOM</p>
           </div>
-
-          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {artworks.map((art, i) => (
-              <ArtCard 
-                key={i} 
-                {...art} 
-                onClick={() => setSelectedArt(art)} 
-              />
-            ))}
-          </div>
+          
+          {/* THE NEW CAROUSEL */}
+          <ArtCarousel artworks={artworks} />
+          
         </div>
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-20 px-6 bg-gray-900/50">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl font-bold mb-8 text-center">About Me</h2>
+      <section id="about" className="py-20 px-6 relative z-10">
+        <div className="max-w-4xl mx-auto bg-gray-900/80 border border-white/10 p-8 md:p-12 backdrop-blur-md relative overflow-hidden">
+          {/* Decorative Corner */}
+          <div className="absolute top-0 right-0 w-20 h-20 bg-[#EC4899]/20 -rotate-45 transform translate-x-10 -translate-y-10"></div>
           
-          <div className="bg-gray-800 rounded-lg p-8 border border-gray-700 mb-8">
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              I'm a Master's student in Computer Science at the University of the Pacific with a passion for creating 
-              immersive game experiences and solving complex technical challenges. My work spans game development 
-              on platforms like ROBLOX to optimization models for renewable energy research.
-            </p>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-cyan-400 font-semibold mb-3 text-lg">Education</h3>
-                <p className="text-gray-400">MS Computer Science (Expected 2027)</p>
-                <p className="text-gray-400">BS Computer Science - 3.85 GPA</p>
-                <p className="text-gray-400">Minor in Media X</p>
-              </div>
-              <div>
-                <h3 className="text-cyan-400 font-semibold mb-3 text-lg">Interests</h3>
-                <p className="text-gray-400">Game Development</p>
-                <p className="text-gray-400">3D Modeling & Animation</p>
-                <p className="text-gray-400">Optimization & Algorithms</p>
+          <h2 className="text-4xl font-black italic uppercase mb-8 text-[#0EA5E9]">System Info</h2>
+          
+          <div className="grid md:grid-cols-2 gap-12">
+            <div>
+               <p className="text-gray-300 text-lg leading-relaxed mb-6 font-light">
+                I'm a Master's student in Computer Science at the University of the Pacific. My work merges technical engineering with creative artistry, spanning from ROBLOX game dev to renewable energy optimization.
+              </p>
+              <div className="space-y-2">
+                <h3 className="text-white font-bold uppercase tracking-wider border-b border-gray-700 pb-2 mb-4">Education</h3>
+                <p className="text-gray-400 font-mono text-sm">MS Computer Science (Expected 2027)</p>
+                <p className="text-gray-400 font-mono text-sm">BS Computer Science - 3.85 GPA</p>
+                <p className="text-gray-400 font-mono text-sm">Minor in Media X</p>
               </div>
             </div>
-          </div>
 
-          {/* Skills */}
-          <div className="bg-gray-800 rounded-lg p-8 border border-gray-700">
-            <h3 className="text-2xl font-bold mb-6">Technical Toolkit</h3>
             <div className="space-y-6">
-              <div>
-                <h4 className="text-cyan-400 font-semibold mb-3">Languages</h4>
-                <div className="flex flex-wrap gap-2">
-                  {['Lua', 'Java', 'C++', 'MATLAB'].map((lang) => (
-                    <span key={lang} className="px-4 py-2 bg-gray-900 text-white rounded-lg border border-gray-700">
-                      {lang}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h4 className="text-purple-400 font-semibold mb-3">Game Engines & Tools</h4>
-                <div className="flex flex-wrap gap-2">
-                  {['Roblox Studio', 'GitHub', 'Blender', 'Paint.net'].map((tool) => (
-                    <span key={tool} className="px-4 py-2 bg-gray-900 text-white rounded-lg border border-gray-700">
-                      {tool}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h4 className="text-pink-400 font-semibold mb-3">Design & Planning</h4>
-                <div className="flex flex-wrap gap-2">
-                  {['Lucid (UML)', 'MindView', 'Adobe Firefly', 'Project Management'].map((skill) => (
-                    <span key={skill} className="px-4 py-2 bg-gray-900 text-white rounded-lg border border-gray-700">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
+               <div>
+                  <h3 className="text-white font-bold uppercase tracking-wider border-b border-gray-700 pb-2 mb-4">Tech Stack</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {['Lua', 'Java', 'C++', 'MATLAB', 'Python'].map((lang) => (
+                      <span key={lang} className="px-3 py-1 bg-[#0EA5E9]/10 text-[#0EA5E9] border border-[#0EA5E9]/30 font-mono text-xs">
+                        {lang}
+                      </span>
+                    ))}
+                  </div>
+               </div>
+               <div>
+                  <h3 className="text-white font-bold uppercase tracking-wider border-b border-gray-700 pb-2 mb-4">Engines</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {['Roblox Studio', 'Unity', 'Godot', 'Blender'].map((tool) => (
+                      <span key={tool} className="px-3 py-1 bg-[#EC4899]/10 text-[#EC4899] border border-[#EC4899]/30 font-mono text-xs">
+                        {tool}
+                      </span>
+                    ))}
+                  </div>
+               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section className="py-20 px-6 border-t border-gray-800">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-6">Let's Connect</h2>
-          <p className="text-gray-400 mb-8 text-lg">
-            Interested in collaborating or want to learn more about my work?
-          </p>
-          <div className="flex justify-center gap-6">
-            <a href="mailto:m_boateng@u.pacific.edu" 
-               className="flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-cyan-500 rounded-lg transition-colors border border-gray-700">
-              <Mail size={20} />
-              Email
-            </a>
-            <a href="#" 
-               className="flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-purple-500 rounded-lg transition-colors border border-gray-700">
-              <Github size={20} />
-              GitHub
-            </a>
-            <a href="#" 
-               className="flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-blue-500 rounded-lg transition-colors border border-gray-700">
-              <Linkedin size={20} />
-              LinkedIn
-            </a>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-gray-800 text-center text-gray-500">
-        <p>© 2026 Melvin Boateng. Built with React & Tailwind CSS.</p>
-        <p className="text-sm mt-2">Stockton, California | 209-292-7814</p>
+      <footer className="py-8 px-6 border-t border-gray-800 text-center text-gray-600 font-mono text-xs relative z-10">
+        <p>© 2026 MELVIN BOATENG. SYSTEM ONLINE.</p>
+        <p className="mt-2 opacity-50">Stockton, CA | 209-292-7814</p>
       </footer>
 
-      {/* MODALS */}
-      {/* Project Detail Modal */}
+      {/* Modals */}
       {selectedProject && (
         <ProjectDetailModal 
           project={selectedProject} 
           onClose={() => setSelectedProject(null)} 
-        />
-      )}
-
-      {/* NEW: Art Detail Modal */}
-      {selectedArt && (
-        <ArtDetailModal 
-          artwork={selectedArt} 
-          onClose={() => setSelectedArt(null)} 
         />
       )}
     </div>
