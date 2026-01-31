@@ -1,14 +1,12 @@
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stage, useGLTF, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls, Stage, useGLTF } from '@react-three/drei';
 
-// Component to load and display the 3D model
 function Model({ url }) {
   const { scene } = useGLTF(url);
   return <primitive object={scene} scale={1} />;
 }
 
-// Loading placeholder while model loads
 function LoadingPlaceholder() {
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
@@ -29,12 +27,10 @@ const ModelViewer = ({ modelPath, title }) => {
         camera={{ position: [0, 0, 5], fov: 50 }}
       >
         <Suspense fallback={null}>
-          {/* Lighting setup */}
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
           <pointLight position={[-10, -10, -5]} intensity={0.5} />
           
-          {/* Stage provides nice environment lighting */}
           <Stage 
             environment="city" 
             intensity={0.6}
@@ -45,7 +41,6 @@ const ModelViewer = ({ modelPath, title }) => {
           </Stage>
         </Suspense>
         
-        {/* Camera controls - enables rotation, zoom, pan */}
         <OrbitControls
           enableZoom={true}
           enablePan={true}
@@ -56,17 +51,16 @@ const ModelViewer = ({ modelPath, title }) => {
         />
       </Canvas>
       
-      {/* Loading state */}
       <Suspense fallback={<LoadingPlaceholder />}>
         <div className="hidden"></div>
       </Suspense>
       
-      {/* Instructions overlay */}
-      <div className="absolute bottom-4 left-4 bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-gray-700">
-        <p className="text-gray-300 text-xs">
-          <span className="text-cyan-400 font-semibold">Click & Drag</span> to rotate • 
-          <span className="text-cyan-400 font-semibold"> Scroll</span> to zoom • 
-          <span className="text-cyan-400 font-semibold"> Right-click</span> to pan
+      {/* Moved instructions to Top-Right and added z-index */}
+      <div className="absolute top-4 right-4 z-20 bg-gray-900/90 backdrop-blur-md px-4 py-2 rounded-lg border border-cyan-500/30 shadow-lg">
+        <p className="text-gray-300 text-[10px] md:text-xs font-mono uppercase tracking-wider">
+          <span className="text-cyan-400 font-bold">LMB</span> Rotate • 
+          <span className="text-cyan-400 font-bold"> Wheel</span> Zoom • 
+          <span className="text-cyan-400 font-bold"> RMB</span> Pan
         </p>
       </div>
     </div>
