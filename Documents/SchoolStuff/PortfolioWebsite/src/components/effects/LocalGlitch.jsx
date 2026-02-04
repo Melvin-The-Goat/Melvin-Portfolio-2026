@@ -1,49 +1,66 @@
-// effects/LocalGlitch.jsx
 import React, { useState, useEffect } from 'react';
 
-export const LocalGlitch = ({ children }) => {
+export const LocalGlitch = ({ children, isActive: manualTrigger = false, enabled = true }) => {
   const [isGlitching, setIsGlitching] = useState(false);
 
   useEffect(() => {
+    if (!enabled) {
+      setIsGlitching(false);
+      return;
+    }
+
     const triggerGlitch = () => {
-      setIsGlitching(true);
-      setTimeout(() => setIsGlitching(false), 200 + Math.random() * 300);
-      
-      // Random interval between 3 and 10 seconds
-      const nextInterval = 3000 + Math.random() * 7000;
-      setTimeout(triggerGlitch, nextInterval);
+      if (!manualTrigger && enabled) {
+        setIsGlitching(true);
+        setTimeout(() => setIsGlitching(false), 180);
+        setTimeout(triggerGlitch, 5000 + Math.random() * 5000);
+      }
     };
 
-    const initialTimer = setTimeout(triggerGlitch, 2000);
-    return () => clearTimeout(initialTimer);
-  }, []);
+    const timer = setTimeout(triggerGlitch, 3000);
+    return () => clearTimeout(timer);
+  }, [manualTrigger, enabled]);
 
+  const currentlyGlitching = enabled && (manualTrigger || isGlitching);
+
+  /**
+   * FIX 1: The root is now 'inline' instead of 'inline-block'.
+   * This allows the browser to highlight "MELVIN" and "BOATENG" as one continuous line.
+   * * FIX 2: The glitch container and its layers now use 'block' and 'inset-0'.
+   * This ensures that when the card image glitches, the colored layers actually fill the
+   * dimensions of the image instead of collapsing into a 0-pixel "black" box.
+   */
   return (
-    <div className={`relative inline-block ${isGlitching ? 'animate-local-glitch' : ''}`}>
+    <span className="relative inline">
       {children}
-      {isGlitching && (
-        <>
-          <span className="absolute top-0 left-0 w-full h-full text-cyan-400 opacity-70 -translate-x-1 mix-blend-screen overflow-hidden pointer-events-none">
+      {currentlyGlitching && (
+        <span className="absolute inset-0 pointer-events-none select-none overflow-hidden block animate-local-tear">
+          {/* Blue Channel Layer */}
+          <span className="text-[#0EA5E9] opacity-70 translate-x-1 mix-blend-screen absolute inset-0 w-full h-full block">
             {children}
           </span>
-          <span className="absolute top-0 left-0 w-full h-full text-pink-500 opacity-70 translate-x-1 mix-blend-screen overflow-hidden pointer-events-none">
+          {/* Pink Channel Layer */}
+          <span className="text-[#EC4899] opacity-70 -translate-x-1 mix-blend-screen absolute inset-0 w-full h-full block">
             {children}
           </span>
-        </>
+          {/* Red Channel Layer */}
+          <span className="text-red-500 opacity-40 translate-y-0.5 mix-blend-screen absolute inset-0 w-full h-full block">
+            {children}
+          </span>
+        </span>
       )}
       <style>{`
-        @keyframes local-glitch {
-          0% { clip-path: inset(80% 0 0 0); transform: translate(-2px); }
-          20% { clip-path: inset(20% 0 60% 0); transform: translate(2px); }
-          40% { clip-path: inset(40% 0 40% 0); transform: translate(-1px); }
-          60% { clip-path: inset(10% 0 80% 0); transform: translate(1px); }
-          80% { clip-path: inset(60% 0 20% 0); transform: translate(-2px); }
+        @keyframes local-tear {
+          0% { clip-path: inset(20% 0 50% 0); transform: translate(-4px); }
+          25% { clip-path: inset(10% 0 80% 0); transform: translate(4px); }
+          50% { clip-path: inset(70% 0 10% 0); transform: translate(-2px); }
+          75% { clip-path: inset(40% 0 40% 0); transform: translate(2px); }
           100% { clip-path: inset(0 0 0 0); transform: translate(0); }
         }
-        .animate-local-glitch {
-          animation: local-glitch 0.3s step-end infinite;
+        .animate-local-tear {
+          animation: local-tear 0.15s step-end infinite;
         }
       `}</style>
-    </div>
+    </span>
   );
 };

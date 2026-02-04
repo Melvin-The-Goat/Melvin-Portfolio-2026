@@ -1,4 +1,3 @@
-// effects/GlitchEffect.jsx
 import React, { useState, useEffect } from 'react';
 
 export const GlitchEffect = ({ isActive, onComplete, mode = 'standard' }) => {
@@ -26,56 +25,33 @@ export const GlitchEffect = ({ isActive, onComplete, mode = 'standard' }) => {
 
   return (
     <>
-      {/* RGB Split Overlay */}
-      <div 
-        className={`fixed inset-0 pointer-events-none z-[9999] mix-blend-screen transition-opacity duration-75`}
-        style={{
-          animation: mode === 'heavy' ? 'heavy-rgb 0.5s step-end infinite' : 'rgb-split 0.4s ease-out',
-          opacity: glitchStage > 0 ? 1 : 0
-        }}
-      >
-        <div className="absolute inset-0 bg-red-500/30" style={{ transform: `translate(${glitchStage * 5}px, 2px)` }}></div>
-        <div className="absolute inset-0 bg-cyan-500/30" style={{ transform: `translate(-${glitchStage * 5}px, -2px)` }}></div>
+      <div className="fixed inset-0 z-[9999] pointer-events-none mix-blend-screen opacity-70">
+        <div className="absolute inset-0 bg-red-500/20 animate-pulse" style={{ transform: 'translateX(4px)' }} />
+        <div className="absolute inset-0 bg-cyan-500/20 animate-pulse" style={{ transform: 'translateX(-4px)' }} />
       </div>
 
-      {/* Digital Corruption Strips (Image 3 Style) */}
-      {mode === 'heavy' && glitchStage === 2 && (
+      {mode === 'heavy' && (
         <div className="fixed inset-0 z-[9998] pointer-events-none overflow-hidden">
-          {Array.from({ length: 10 }).map((_, i) => (
+          {Array.from({ length: 12 }).map((_, i) => (
             <div 
               key={i}
-              className="absolute w-full bg-cyan-500/20 border-y border-white/10"
+              className="absolute w-full bg-cyan-500/10 border-y border-white/5 shadow-[0_0_15px_rgba(0,243,255,0.2)]"
               style={{
-                height: Math.random() * 100 + 'px',
+                height: Math.random() * 60 + 'px',
                 top: Math.random() * 100 + '%',
-                left: (Math.random() - 0.5) * 50 + 'px',
-                filter: 'hue-rotate(90deg) brightness(2)'
+                left: (Math.random() - 0.5) * 100 + 'px',
+                animation: `heavy-bar-float ${0.15 + Math.random() * 0.2}s infinite step-end`
               }}
             />
           ))}
         </div>
       )}
 
-      {/* Static Noise Overlay */}
-      <div 
-        className="fixed inset-0 pointer-events-none z-[9999] opacity-20"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' /%3E%3C/svg%3E")`,
-          display: glitchStage === 3 ? 'block' : 'none'
-        }}
-      />
-
       <style>{`
-        @keyframes rgb-split {
-          0%, 100% { transform: scale(1); filter: hue-rotate(0deg); }
-          50% { transform: scale(1.02); filter: hue-rotate(90deg); }
-        }
-        @keyframes heavy-rgb {
-          0% { transform: translate(5px, -5px); filter: invert(0.1); }
-          20% { transform: translate(-5px, 5px); filter: hue-rotate(180deg); }
-          40% { transform: translate(10px, 0); }
-          60% { transform: translate(-10px, 2px); filter: brightness(2); }
-          80% { transform: translate(2px, -10px); }
+        @keyframes heavy-bar-float {
+          0% { transform: translateX(-10%); filter: hue-rotate(0deg); }
+          50% { transform: translateX(10%); filter: hue-rotate(90deg) brightness(2); }
+          100% { transform: translateX(-5%); }
         }
       `}</style>
     </>
