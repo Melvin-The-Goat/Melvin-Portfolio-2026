@@ -1,86 +1,100 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Music, Minimize2, Maximize2 } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Music, Minimize2 } from 'lucide-react';
 
-const MusicPlayer = () => {
+const MusicPlayer = ({ onTrackChange }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState(0);
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [showVisualizer, setShowVisualizer] = useState(true);
   const audioRef = useRef(null);
-  const animationRef = useRef(null);
 
+  // Updated Playlist with your specific files
   const playlist = [
-    { title: 'Cyberpunk Dreams', artist: 'Synthwave', duration: '3:45', file: '/music/track1.mp3' },
-    { title: 'Neural Network', artist: 'Electronic', duration: '4:12', file: '/music/track2.mp3' },
-    { title: 'Code & Coffee', artist: 'Lo-fi Beats', duration: '3:28', file: '/music/track3.mp3' }
+    { 
+      title: 'TECH BEAT', 
+      artist: 'Melvin Boateng', 
+      file: '/TECH BEAT FINISHED 215BPM (1).mp3' // Ensure this matches your file extension
+    },
+    { 
+      title: 'Greener Pastures', 
+      artist: 'Melvin Boateng', 
+      file: '/GreenerPastures.wav' 
+    }
   ];
 
   const currentSong = playlist[currentTrack];
 
-  // Visualizer bars animation
+  // Visualizer bars animation state
   const [bars, setBars] = useState(Array(20).fill(0.2));
   
   useEffect(() => {
-    if (isPlaying && showVisualizer) {
+    if (isPlaying) {
       const interval = setInterval(() => {
         setBars(prev => prev.map(() => Math.random() * 0.8 + 0.2));
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [isPlaying, showVisualizer]);
+  }, [isPlaying]);
+
+  // Audio Logic
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
+    }
+  }, [volume, isMuted]);
 
   const togglePlay = () => {
-    setIsPlaying(!isPlaying);
-    // In real implementation: audioRef.current?.play() or pause()
-  };
-
-  const nextTrack = () => {
-    setCurrentTrack((prev) => (prev + 1) % playlist.length);
-    setProgress(0);
-  };
-
-  const prevTrack = () => {
-    setCurrentTrack((prev) => (prev - 1 + playlist.length) % playlist.length);
-    setProgress(0);
-  };
-
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-  };
-
-  const handleVolumeChange = (e) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
-  };
-
-  // Simulate progress
-  useEffect(() => {
     if (isPlaying) {
-      const timer = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            nextTrack();
-            return 0;
-          }
-          return prev + 0.5;
-        });
-      }, 100);
-      return () => clearInterval(timer);
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(err => console.error("Playback failed:", err));
     }
-  }, [isPlaying]);
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleTimeUpdate = () => {
+    setCurrentTime(audioRef.current.currentTime);
+    setDuration(audioRef.current.duration);
+  };
+
+  const changeTrack = (index) => {
+    setCurrentTrack(index);
+    setCurrentTime(0);
+    setIsPlaying(true);
+    onTrackChange?.(); // Trigger global glitch on track change
+    // Small timeout to allow source change before play
+    setTimeout(() => {
+      audioRef.current.play().catch(() => {});
+    }, 10);
+  };
+
+  const nextTrack = () => changeTrack((currentTrack + 1) % playlist.length);
+  const prevTrack = () => changeTrack((currentTrack - 1 + playlist.length) % playlist.length);
+
+  const formatTime = (time) => {
+    if (isNaN(time)) return "0:00";
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleProgressChange = (e) => {
+    const newTime = (parseFloat(e.target.value) / 100) * duration;
+    audioRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
 
   if (isMinimized) {
     return (
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => setIsMinimized(false)}
-          className="group relative bg-gradient-to-br from-purple-600/90 to-pink-600/90 backdrop-blur-md border border-white/20 rounded-full p-4 hover:scale-110 transition-all shadow-lg hover:shadow-purple-500/50"
+          className="group relative bg-gradient-to-br from-[#0EA5E9]/90 to-[#EC4899]/90 backdrop-blur-md border border-white/20 rounded-full p-4 hover:scale-110 transition-all shadow-lg hover:shadow-[#0EA5E9]/50"
         >
-          <Music className={isPlaying ? 'animate-pulse' : ''} size={24} />
+          <Music className={isPlaying ? 'animate-pulse' : ''} size={24} color="white" />
           {isPlaying && (
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping"></div>
           )}
@@ -90,124 +104,90 @@ const MusicPlayer = () => {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-96">
-      {/* Main Player Card */}
-      <div className="bg-gray-900/95 backdrop-blur-xl border border-purple-500/30 rounded-2xl shadow-2xl overflow-hidden">
-        {/* Visualizer */}
-        {showVisualizer && (
-          <div className="h-16 bg-gradient-to-r from-purple-900/50 to-pink-900/50 flex items-end justify-around px-4 gap-1">
-            {bars.map((height, i) => (
-              <div
-                key={i}
-                className="w-1 bg-gradient-to-t from-purple-400 to-pink-400 rounded-full transition-all duration-100"
-                style={{ 
-                  height: `${isPlaying ? height * 100 : 20}%`,
-                  opacity: isPlaying ? 1 : 0.3
-                }}
-              />
-            ))}
-          </div>
-        )}
+    <div className="fixed bottom-6 right-6 z-50 w-80 md:w-96 animate-fade-in">
+      {/* Real Audio Element */}
+      <audio
+        ref={audioRef}
+        src={currentSong.file}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={nextTrack}
+        onLoadedMetadata={handleTimeUpdate}
+      />
 
-        {/* Track Info */}
+      <div className="bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+        {/* Visualizer Area */}
+        <div className="h-16 bg-black/40 flex items-end justify-around px-6 gap-1 border-b border-white/5">
+          {bars.map((height, i) => (
+            <div
+              key={i}
+              className="w-1 bg-[#0EA5E9] rounded-full transition-all duration-100"
+              style={{ 
+                height: `${isPlaying ? height * 100 : 20}%`,
+                opacity: isPlaying ? 1 : 0.3,
+                boxShadow: isPlaying ? '0 0 10px #0EA5E9' : 'none'
+              }}
+            />
+          ))}
+        </div>
+
         <div className="p-6 space-y-4">
+          {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <Music size={16} className="text-purple-400 flex-shrink-0" />
-                <h3 className="text-white font-bold text-lg truncate">{currentSong.title}</h3>
-              </div>
-              <p className="text-gray-400 text-sm">{currentSong.artist}</p>
+              <h3 className="text-white font-black italic uppercase text-sm truncate tracking-tighter">
+                {currentSong.title}
+              </h3>
+              <p className="text-gray-500 text-xs font-mono uppercase tracking-widest">{currentSong.artist}</p>
             </div>
-            <button
-              onClick={() => setIsMinimized(true)}
-              className="text-gray-400 hover:text-white transition-colors p-1"
-            >
+            <button onClick={() => setIsMinimized(true)} className="text-gray-500 hover:text-[#EC4899] transition-colors">
               <Minimize2 size={18} />
             </button>
           </div>
 
           {/* Progress Bar */}
-          <div className="space-y-2">
-            <div className="relative h-1 bg-gray-700 rounded-full overflow-hidden group cursor-pointer">
-              <div 
-                className="absolute h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
-                style={{ width: `${progress}%` }}
-              >
-                <div className="absolute right-0 w-3 h-3 bg-white rounded-full -translate-y-1/4 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </div>
-            </div>
-            <div className="flex justify-between text-xs text-gray-400 font-mono">
-              <span>{Math.floor(progress / 100 * 225 / 60)}:{String(Math.floor(progress / 100 * 225 % 60)).padStart(2, '0')}</span>
-              <span>{currentSong.duration}</span>
+          <div className="space-y-1">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={(currentTime / duration) * 100 || 0}
+              onChange={handleProgressChange}
+              className="w-full h-1 bg-gray-800 rounded-full appearance-none cursor-pointer accent-[#EC4899]"
+            />
+            <div className="flex justify-between text-[10px] text-gray-500 font-mono">
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
             </div>
           </div>
 
           {/* Controls */}
           <div className="flex items-center justify-between">
-            {/* Playback Controls */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={prevTrack}
-                className="p-2 text-gray-400 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
-              >
-                <SkipBack size={20} />
-              </button>
+              <button onClick={prevTrack} className="p-2 text-gray-400 hover:text-white transition-all"><SkipBack size={20} /></button>
               <button
                 onClick={togglePlay}
-                className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full transition-all hover:scale-110 shadow-lg"
+                className="p-3 bg-white text-black rounded-full hover:scale-110 transition-all shadow-[0_0_15px_rgba(255,255,255,0.3)]"
               >
-                {isPlaying ? <Pause size={20} fill="white" /> : <Play size={20} fill="white" />}
+                {isPlaying ? <Pause size={20} fill="black" /> : <Play size={20} fill="black" />}
               </button>
-              <button
-                onClick={nextTrack}
-                className="p-2 text-gray-400 hover:text-white transition-colors hover:bg-white/10 rounded-lg"
-              >
-                <SkipForward size={20} />
-              </button>
+              <button onClick={nextTrack} className="p-2 text-gray-400 hover:text-white transition-all"><SkipForward size={20} /></button>
             </div>
 
-            {/* Volume Control */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={toggleMute}
-                className="p-2 text-gray-400 hover:text-white transition-colors"
-              >
-                {isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
+            {/* Volume */}
+            <div className="flex items-center gap-2 group">
+              <button onClick={() => setIsMuted(!isMuted)} className="text-gray-500 hover:text-white transition-colors">
+                {isMuted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
               </button>
               <input
                 type="range"
-                min="0"
-                max="1"
-                step="0.01"
+                min="0" max="1" step="0.01"
                 value={isMuted ? 0 : volume}
-                onChange={handleVolumeChange}
-                className="w-20 h-1 bg-gray-700 rounded-full appearance-none cursor-pointer
-                         [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 
-                         [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-500 
-                         [&::-webkit-slider-thumb]:hover:bg-purple-400 [&::-webkit-slider-thumb]:transition-colors"
+                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                className="w-16 h-1 bg-gray-800 rounded-full appearance-none accent-[#0EA5E9]"
               />
             </div>
           </div>
-
-          {/* Playlist Preview */}
-          <div className="pt-4 border-t border-gray-800">
-            <div className="text-xs text-gray-500 mb-2 font-mono uppercase tracking-wider">Up Next</div>
-            <div className="space-y-1">
-              {playlist.slice(currentTrack + 1, currentTrack + 3).map((track, idx) => (
-                <div key={idx} className="flex items-center justify-between text-sm text-gray-400 hover:text-white transition-colors cursor-pointer p-1 rounded hover:bg-white/5">
-                  <span className="truncate flex-1">{track.title}</span>
-                  <span className="text-xs font-mono">{track.duration}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
-
-        {/* Glitch Effect Overlay (triggers on track change) */}
-        {progress < 1 && progress > 0 && (
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 animate-pulse pointer-events-none"></div>
-        )}
       </div>
     </div>
   );

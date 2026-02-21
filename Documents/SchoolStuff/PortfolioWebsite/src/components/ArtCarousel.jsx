@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Box, Cpu } from 'lucide-react';
 import ModelViewer from './ModelViewer';
+import { analytics } from '../utils/analytics';
 
 const ArtCarousel = ({ artworks }) => {
   const [index, setIndex] = useState(0);
@@ -8,6 +9,13 @@ const ArtCarousel = ({ artworks }) => {
   if (!artworks || artworks.length === 0) return null;
 
   const current = artworks[index];
+
+  // Track model views
+  useEffect(() => {
+    if (current?.title) {
+      analytics.trackModelView(current.title);
+    }
+  }, [index, current]);
 
   const next = () => setIndex((prev) => (prev + 1) % artworks.length);
   const prev = () => setIndex((prev) => (prev - 1 + artworks.length) % artworks.length);

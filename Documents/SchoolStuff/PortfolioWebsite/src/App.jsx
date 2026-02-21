@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import ProjectCard from './components/ProjectCard';
 import { ArtCarousel } from './components/ArtCarousel';
 import MusicPlayer from './components/MusicPlayer';
 import ProjectDetailModal from './components/ProjectDetailModal';
+import ContactSection from './components/ContactSection';
+import ErrorBoundary from './components/ErrorBoundary';
+import { analytics } from './utils/analytics';
 import { Power } from 'lucide-react'; 
 
 // Integrated high-intensity effects
@@ -36,10 +39,14 @@ function App() {
       setTimeout(() => {
         setIsLoading(false);
         setIsCyberMode(true);
+        analytics.trackCyberModeToggle(true);
       }, 4500);
     } else {
       triggerGlitch('high'); 
-      setTimeout(() => setIsCyberMode(false), 500);
+      setTimeout(() => {
+        setIsCyberMode(false);
+        analytics.trackCyberModeToggle(false);
+      }, 500);
     }
   };
 
@@ -78,7 +85,7 @@ function App() {
     },
     {
       title: "A Hero Knight's Journey",
-      description: "Latest iteration of Pokemon-style game with enhanced graphics, improved battle mechanics, and expanded world exploration.",
+      description: "A fast-paced 2D action-platformer featuring dynamic combat mechanics and responsive player controls. Built with a focus on modular C# scripting and Unity’s Prefab system, the project implements custom character controllers and state-based animation logic to deliver an immersive gameplay experience.",
       techStack: ["C#", "Unity", "GitHub"],
       category: "Game Dev",
       engine: "Unity",
@@ -121,25 +128,40 @@ function App() {
     { title: "Anglerfish", type: "3D Model", modelPath: "/models/anglerFish3RIGFinal.glb", description: "Deep-sea predator featuring rigged emissive lighting.", technicalDetails: ["Blender", "GLTF"] },
     { title: "Spider", type: "3D Model", modelPath: "/models/spiderBone&Weights.glb", description: "Intricate procedurally moving spider", technicalDetails: ["Blender", "GLTF"] },
     { title: "stingRay", type: "3D Model", modelPath: "/models/stingRay3FlatV2Rig1.glb", description: "Simple stingray", technicalDetails: ["Blender", "GLTF"] },
+    { title: "Yeti", type: "3D Model", modelPath: "/models/yetiPieces5Named.glb", description: "King of the North", technicalDetails: ["Blender", "GLTF"] },
+    { title: "CrystalSnake", type: "3D Model", modelPath: "/models/crystalSnakeTest.glb", description: "Crystal Snake", technicalDetails: ["Blender", "GLTF"] },
+    { title: "Golem", type: "3D Model", modelPath: "/models/slenderEarthGolemFragmentedFinal2.glb", description: "From the foundations of our very Earth/World", technicalDetails: ["Blender", "GLTF"] },
+    { title: "Goblin", type: "3D Model", modelPath: "/models/goblinReAttempt2rigTEXTURED.glb", description: "Gremlin-like creature", technicalDetails: ["Blender", "GLTF"] },
     { title: "Slime", type: "3D Model", modelPath: "/models/SimpleSlime2.glb", description: "Modular slime body.", technicalDetails: ["Blender", "GLTF"] },
   ];
 
   const filterOptions = ['All', 'Game Dev', 'Software', 'Roblox', 'Java', 'C++'];
 
-  const filteredProjects = projects.filter(project => {
-    if (activeFilter === 'All') return true;
-    if (activeFilter === 'Game Dev' || activeFilter === 'Software') return project.category === activeFilter;
-    return project.engine === activeFilter;
-  });
+  // Memoize filtered projects for performance
+  const filteredProjects = useMemo(() => {
+    return projects.filter(project => {
+      if (activeFilter === 'All') return true;
+      if (activeFilter === 'Game Dev' || activeFilter === 'Software') return project.category === activeFilter;
+      return project.engine === activeFilter;
+    });
+  }, [activeFilter, projects]);
+
+  // Initialize analytics
+  useEffect(() => {
+    analytics.init();
+    analytics.trackPageView(window.location.pathname);
+  }, []);
 
   const scrollToSection = (sectionId) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    analytics.trackSectionView(sectionId);
   };
 
   return (
-    <>
+    <ErrorBoundary>
       {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
 
+      {/* ADJUST_SELECTION_AREA: Main container - overflow-x-hidden kept to prevent scrolling, but selection can extend via padding */}
       <div className="min-h-screen text-white overflow-x-hidden selection:bg-[#EC4899] selection:text-white bg-[#050505]">
         
         <div className="ai-bg" />
@@ -175,7 +197,7 @@ function App() {
                   {item}
                 </button>
               ))}
-              <a href="/Resume as of Jan 2026.pdf" target="_blank" className="px-4 md:px-6 py-2 text-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white transition-all duration-200 font-bold uppercase italic skew-x-12 text-sm md:text-base">
+              <a href="/Melvin Boateng Resume Feb 2026.pdf" target="_blank" className="px-4 md:px-6 py-2 text-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white transition-all duration-200 font-bold uppercase italic skew-x-12 text-sm md:text-base">
                 Resume
               </a>
             </div>
@@ -189,7 +211,11 @@ function App() {
               {/* LocalGlitch is nested directly inside H1 to preserve text selection flow */}
               <LocalGlitch enabled={isCyberMode}>Melvin</LocalGlitch> 
               {" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0EA5E9] to-[#EC4899] decoration-[#EC4899] underline-offset-8">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0EA5E9] to-[#EC4899] ml-[-13px] decoration-[#EC4899] underline-offset-8 inline-block"style={{ 
+    display: 'inline-block',
+    verticalAlign: 'top',
+    paddingRight: '45px' // <-- INCREASE THIS FIRST
+  }}>
                 Boateng
               </span>
             </h1>
@@ -228,7 +254,16 @@ function App() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProjects.map((project, i) => (
-                <ProjectCard key={i} {...project} isCyberMode={isCyberMode} onTriggerGlitch={triggerGlitch} onClick={() => setSelectedProject(project)} />
+                <ProjectCard 
+                  key={i} 
+                  {...project} 
+                  isCyberMode={isCyberMode} 
+                  onTriggerGlitch={triggerGlitch} 
+                  onClick={() => {
+                    setSelectedProject(project);
+                    analytics.trackProjectView(project.title);
+                  }} 
+                />
               ))}
             </div>
           </div>
@@ -250,12 +285,12 @@ function App() {
             <h2 className="text-5xl font-black italic uppercase mb-12 text-[#0EA5E9] tracking-tighter drop-shadow-[0_0_10px_rgba(14,165,233,0.3)]">System Info</h2>
             <div className="grid md:grid-cols-2 gap-x-16 gap-y-12">
               <div className="space-y-10 text-gray-300">
-                <p className="text-lg leading-relaxed">Master's student at UOP merging technical engineering with creative artistry, spanning from ROBLOX to renewable energy optimization.</p>
+                <p className="text-lg leading-relaxed">Bachelor's and Master's blended student at UOP merging technical engineering with creative artistry, spanning from ROBLOX to renewable energy optimization.</p>
                 <div className="space-y-4">
                   <h3 className="text-white font-black italic uppercase text-sm tracking-[0.2em] border-b border-white/10 pb-2">Education</h3>
                   <div className="font-mono text-sm text-gray-400">
                     <p>MS Computer Science <span className="text-[#0EA5E9]">(Expected 2027)</span></p>
-                    <p>BS Computer Science — 3.85 GPA</p>
+                    <p>BS Computer Science — 3.87 GPA</p>
                     <p>Minor in Media X</p>
                   </div>
                 </div>
@@ -282,6 +317,8 @@ function App() {
           </div>
         </section>
 
+        <ContactSection isCyberMode={isCyberMode} />
+
         <footer className="py-8 border-t border-gray-800 text-center text-gray-600 font-mono text-xs z-10">
           <p>© 2026 MELVIN BOATENG. {isCyberMode ? 'SYSTEM ONLINE.' : 'VERSION 2.0'}</p>
           <p className="text-[10px] mt-2 italic uppercase">Stockton, California | 209-292-7814</p>
@@ -290,7 +327,7 @@ function App() {
         {isCyberMode && <MusicPlayer onTrackChange={() => triggerGlitch('high')} />}
         {selectedProject && <ProjectDetailModal project={selectedProject} onClose={() => setSelectedProject(null)} />}
       </div>
-    </>
+    </ErrorBoundary>
   );
 }
 

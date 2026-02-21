@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { analytics } from '../utils/analytics';
 
 const ProjectDetailModal = ({ project, onClose }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -114,8 +115,17 @@ const ProjectDetailModal = ({ project, onClose }) => {
 
           {/* DYNAMIC BUTTON */}
           {project.codeLink && (
-            <a href={project.codeLink} target="_blank" rel="noreferrer" 
-               className="w-full py-4 bg-[#0EA5E9] text-white font-black uppercase italic text-center rounded hover:shadow-[0_0_20px_rgba(14,165,233,0.4)] transition-all">
+            <a 
+              href={project.codeLink} 
+              target="_blank" 
+              rel="noreferrer" 
+              onClick={() => {
+                const linkType = project.codeLink.includes('github.com') ? 'GitHub' : 
+                                project.codeLink.includes('roblox.com') ? 'Roblox' : 'External';
+                analytics.trackProjectClick(project.title, linkType);
+              }}
+              className="w-full py-4 bg-[#0EA5E9] text-white font-black uppercase italic text-center rounded hover:shadow-[0_0_20px_rgba(14,165,233,0.4)] transition-all"
+            >
               {getButtonText()}
             </a>
           )}

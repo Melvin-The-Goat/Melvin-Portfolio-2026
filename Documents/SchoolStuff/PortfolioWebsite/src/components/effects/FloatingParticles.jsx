@@ -3,13 +3,21 @@
    ============================================ */
 
 // effects/FloatingParticles.jsx
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
-export const FloatingParticles = ({ count = 50, color = 'cyan' }) => {
+export const FloatingParticles = ({ count = 30, color = 'cyan' }) => {
+  const isMobile = useIsMobile();
+  const [particleCount, setParticleCount] = useState(count);
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
   const mouseRef = useRef({ x: -1000, y: -1000 });
   const animationFrameRef = useRef(null);
+
+  // Adjust particle count for mobile
+  useEffect(() => {
+    setParticleCount(isMobile ? Math.max(10, Math.floor(count * 0.3)) : count);
+  }, [isMobile, count]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -31,7 +39,7 @@ export const FloatingParticles = ({ count = 50, color = 'cyan' }) => {
     const colorValue = colors[color] || colors.cyan;
 
     // Initialize particles
-    particlesRef.current = Array.from({ length: count }, () => ({
+    particlesRef.current = Array.from({ length: particleCount }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
       vx: (Math.random() - 0.5) * 0.3,
@@ -90,7 +98,7 @@ export const FloatingParticles = ({ count = 50, color = 'cyan' }) => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', setSize);
     };
-  }, [count, color]);
+  }, [particleCount, color]);
 
   // CRITICAL: z-index 1 to stay BEHIND ai-bg (z-10) and scanlines (z-20)
   return (

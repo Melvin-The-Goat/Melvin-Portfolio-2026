@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
-const playGlitchSound = (intensity) => {
+const playGlitchSound = (intensity, isMobile) => {
+  if (isMobile) return; // Disable sound on mobile for better performance
   const audio = new Audio('/sounds/glitch.mp3');
   audio.volume = intensity === 'high' ? 0.15 : 0.05;
   audio.play().catch(() => {});
@@ -8,10 +10,11 @@ const playGlitchSound = (intensity) => {
 
 export const EnhancedGlitchEffect = ({ isActive, onComplete, intensity = 'medium' }) => {
   const [glitchStage, setGlitchStage] = useState(0);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (isActive) {
-      playGlitchSound(intensity);
+      playGlitchSound(intensity, isMobile);
       setGlitchStage(1);
       
       const timings = intensity === 'high' ? [100, 250, 400, 550] : [100, 200, 300, 400];
@@ -26,7 +29,7 @@ export const EnhancedGlitchEffect = ({ isActive, onComplete, intensity = 'medium
 
       return () => [t1, t2, t3, t4].forEach(clearTimeout);
     }
-  }, [isActive, intensity, onComplete]);
+  }, [isActive, intensity, onComplete, isMobile]);
 
   if (!isActive) return null;
 
@@ -102,7 +105,7 @@ export const EnhancedGlitchEffect = ({ isActive, onComplete, intensity = 'medium
 
       {/* LAYER 4: Digital Corruption Blocks */}
       <div className="fixed inset-0 z-[9996] pointer-events-none overflow-hidden">
-        {[...Array(25)].map((_, i) => (
+        {[...Array(isMobile ? 10 : 25)].map((_, i) => (
           <div
             key={`corrupt-${i}`}
             className="absolute"
@@ -137,7 +140,7 @@ export const EnhancedGlitchEffect = ({ isActive, onComplete, intensity = 'medium
 
       {/* LAYER 6: Matrix Digital Rain */}
       <div className="fixed inset-0 z-[9994] pointer-events-none overflow-hidden">
-        {[...Array(10)].map((_, i) => (
+        {[...Array(isMobile ? 3 : 10)].map((_, i) => (
           <div 
             key={`matrix-${i}`}
             className="absolute w-px"

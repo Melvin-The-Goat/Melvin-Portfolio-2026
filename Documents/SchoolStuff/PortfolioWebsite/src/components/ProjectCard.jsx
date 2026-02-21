@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Code2 } from 'lucide-react';
 import { LocalGlitch } from './effects/LocalGlitch';
+import { analytics } from '../utils/analytics';
 
 const ProjectCard = ({ title, description, techStack, codeLink, featured, image, video, onClick, onTriggerGlitch, isCyberMode }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -79,7 +80,18 @@ const ProjectCard = ({ title, description, techStack, codeLink, featured, image,
             <h3 className="text-xl font-bold text-white group-hover:text-[#0EA5E9] transition-colors">{title}</h3>
           </LocalGlitch>
           {codeLink && codeLink !== "#" && (
-            <a href={codeLink} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-[#0EA5E9] hover:text-white z-40">
+            <a 
+              href={codeLink} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              onClick={(e) => {
+                e.stopPropagation();
+                const linkType = codeLink.includes('github.com') ? 'GitHub' : 
+                                codeLink.includes('roblox.com') ? 'Roblox' : 'External';
+                analytics.trackProjectClick(title, linkType);
+              }} 
+              className="text-[#0EA5E9] hover:text-white z-40"
+            >
               <Code2 size={20} />
             </a>
           )}
