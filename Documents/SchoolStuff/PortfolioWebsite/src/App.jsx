@@ -76,7 +76,7 @@ function App() {
     },
     {
       title: "Summoner Simulator",
-      description: "Team-based 2D game featuring trainer battles, badge collection system, and strategic monster combat.",
+      description: "Independently developed complete pet collection game on ROBLOX using Lua, designing all game systems including pet summoning logic, inventory management, and player progression mechanics",
       techStack: ["Lua", "Roblox Studio", "Blender","Paint.net", "AI Assets"],
       category: "Game Dev",
       engine: "Roblox",
@@ -197,7 +197,12 @@ function App() {
                   {item}
                 </button>
               ))}
-              <a href="/Melvin Boateng Resume Feb 2026.pdf" target="_blank" className="px-4 md:px-6 py-2 text-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white transition-all duration-200 font-bold uppercase italic skew-x-12 text-sm md:text-base">
+              <a
+                href="/Melvin_Boateng_Resume_CurrentV2.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 md:px-6 py-2 text-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white transition-all duration-200 font-bold uppercase italic skew-x-12 text-sm md:text-base"
+              >
                 Resume
               </a>
             </div>

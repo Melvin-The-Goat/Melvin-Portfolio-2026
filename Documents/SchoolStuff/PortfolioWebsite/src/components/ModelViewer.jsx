@@ -1,13 +1,9 @@
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stage, useGLTF } from '@react-three/drei';
-import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 
-function Model({ url, onError }) {
-  const { scene } = useGLTF(url, undefined, (error) => {
-    console.error('Error loading model:', error);
-    onError?.(error);
-  });
+function Model({ url }) {
+  const { scene } = useGLTF(url);
   return <primitive object={scene} scale={1} />;
 }
 
@@ -23,56 +19,37 @@ function LoadingPlaceholder() {
 }
 
 const ModelViewer = ({ modelPath, title }) => {
-  const [hasError, setHasError] = useState(false);
-  const [elementRef, shouldLoad] = useIntersectionObserver();
-
-  if (hasError) {
-    return (
-      <div className="relative w-full h-[500px] bg-gradient-to-br from-gray-900 to-gray-950 rounded-lg overflow-hidden border border-gray-700 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4">⚠️</div>
-          <p className="text-gray-400 text-sm">Failed to load 3D model</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div ref={elementRef} className="relative w-full h-[500px] bg-gradient-to-br from-gray-900 to-gray-950 rounded-lg overflow-hidden border border-gray-700">
-      {shouldLoad ? (
-        <Canvas
-          shadows
-          gl={{ preserveDrawingBuffer: true, antialias: true, powerPreference: "high-performance" }}
-          camera={{ position: [0, 0, 5], fov: 50 }}
-          dpr={[1, 2]} // Adaptive pixel ratio for performance
-        >
-          <Suspense fallback={null}>
-            <ambientLight intensity={0.5} />
-            <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
-            <pointLight position={[-10, -10, -5]} intensity={0.5} />
-            
-            <Stage 
-              environment="city" 
-              intensity={0.6}
-              shadows="contact"
-              adjustCamera={false}
-            >
-              <Model url={modelPath} onError={() => setHasError(true)} />
-            </Stage>
-          </Suspense>
+    <div className="relative w-full h-[500px] bg-gradient-to-br from-gray-900 to-gray-950 rounded-lg overflow-hidden border border-gray-700">
+      <Canvas
+        shadows
+        gl={{ preserveDrawingBuffer: true }}
+        camera={{ position: [0, 0, 5], fov: 50 }}
+      >
+        <Suspense fallback={null}>
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
+          <pointLight position={[-10, -10, -5]} intensity={0.5} />
           
-          <OrbitControls
-            enableZoom={true}
-            enablePan={true}
-            enableRotate={true}
-            minDistance={2}
-            maxDistance={10}
-            makeDefault
-          />
-        </Canvas>
-      ) : (
-        <LoadingPlaceholder />
-      )}
+          <Stage 
+            environment="city" 
+            intensity={0.6}
+            shadows="contact"
+            adjustCamera={false}
+          >
+            <Model url={modelPath} />
+          </Stage>
+        </Suspense>
+        
+        <OrbitControls
+          enableZoom={true}
+          enablePan={true}
+          enableRotate={true}
+          minDistance={2}
+          maxDistance={10}
+          makeDefault
+        />
+      </Canvas>
       
       <Suspense fallback={<LoadingPlaceholder />}>
         <div className="hidden"></div>

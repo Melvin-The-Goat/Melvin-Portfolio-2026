@@ -4,32 +4,23 @@
 
 // effects/CustomCursor.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { useIsMobile } from '../../hooks/useIsMobile';
 
 export const CustomCursor = () => {
-  const isMobile = useIsMobile();
   const [position, setPosition] = useState({ x: -100, y: -100 }); // Start offscreen
   const [isClicking, setIsClicking] = useState(false);
   const [trail, setTrail] = useState([]);
-  const trailLength = isMobile ? 3 : 6; // Reduced trail on mobile
+  const trailLength = 6; // Further reduced for better cleanup
   const rafRef = useRef(null);
   const lastUpdate = useRef(0);
 
   useEffect(() => {
-    // Disable custom cursor on mobile/touch devices
-    if (isMobile) {
-      document.body.style.cursor = 'auto';
-      return;
-    }
-
     let isMounted = true;
     
     const handleMouseMove = (e) => {
       if (!isMounted) return;
       
       const now = Date.now();
-      const throttleTime = isMobile ? 50 : 20; // More throttling on mobile
-      if (now - lastUpdate.current < throttleTime) return;
+      if (now - lastUpdate.current < 20) return; // Throttle to 50fps
       lastUpdate.current = now;
 
       const newPos = { x: e.clientX, y: e.clientY };
@@ -67,10 +58,7 @@ export const CustomCursor = () => {
         cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [isMobile]);
-
-  // Don't render on mobile
-  if (isMobile) return null;
+  }, []);
 
   return (
     <>
