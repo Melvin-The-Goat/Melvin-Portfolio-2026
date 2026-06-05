@@ -86,6 +86,19 @@ function SkillSettings.listOrdered(): { SkillDefinition }
 	return list
 end
 
+-- Server must call this before casting; sub-minimum releases must be rejected, not clamped here.
+function SkillSettings.isChargeTimeValid(skill: SkillDefinition, chargeTime: number): boolean
+	return chargeTime >= skill.MinChargeTime
+end
+
+function SkillSettings.resolveReleaseChargeTime(channelStartedAt: number, payloadChargeTime: any): number
+	local serverChargeTime = math.max(0, os.clock() - channelStartedAt)
+	if typeof(payloadChargeTime) == "number" and payloadChargeTime == payloadChargeTime then
+		return math.min(math.max(0, payloadChargeTime), serverChargeTime)
+	end
+	return serverChargeTime
+end
+
 function SkillSettings.getChargeRatio(skill: SkillDefinition, chargeTime: number): number
 	local t = math.clamp(chargeTime, skill.MinChargeTime, skill.MaxChargeTime)
 	local span = skill.MaxChargeTime - skill.MinChargeTime

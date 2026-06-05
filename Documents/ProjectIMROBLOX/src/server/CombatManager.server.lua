@@ -30,6 +30,12 @@ local lastCastAt: { [Player]: { [string]: number } } = {}
 -- Ensures exactly one mana deduction per channel release token (guards duplicate remotes).
 local manaSpentForRelease: { [string]: boolean } = {}
 
+-- Instant casts only (channeled spells in SkillSettings use ChannelSkill release for mana).
+local LEGACY_INSTANT_SKILL_COSTS: { [string]: number } = {
+	["Mana_Burst"] = 75,
+	["Grit_Skin"] = 0,
+}
+
 local function playerHasSkill(player: Player, skillName: string): boolean
 	return SkillUnlock.hasSkill(player, skillName)
 end
@@ -182,16 +188,9 @@ ChannelSkillEvent.OnServerEvent:Connect(function(player: Player, payload: any)
 		return
 	end
 
-	-- Server-authoritative charge time (client cannot claim extra charge or skip minimum)
-	local serverChargeTime = os.clock() - channel.startedAt
-	local chargeTime: number
-	if typeof(payload.chargeTime) == "number" then
-		chargeTime = math.min(payload.chargeTime, serverChargeTime)
-	else
-		chargeTime = serverChargeTime
-	end
-
-	if chargeTime < skill.MinChargeTime then
+	-- Server-authoritative charge time; reject sub-MinChargeTime (do not cast at min power)
+	local chargeTime = SkillSettings.resolveReleaseChargeTime(channel.startedAt, payload.chargeTime)
+	if not SkillSettings.isChargeTimeValid(skill, chargeTime) then
 		SpellVFX.onChargeEnd(spellId, character)
 		clearChannel(player, character)
 		return
@@ -200,27 +199,28 @@ ChannelSkillEvent.OnServerEvent:Connect(function(player: Player, payload: any)
 	local releaseToken = channel.releaseToken
 	clearChannel(player, character)
 
-	-- Exactly one mana spend per successful release token.
+	-- Mana: exactly once per release, fixed skill.ManaCost (never chargeTime/chargeRatio/impact).
 	if manaSpentForRelease[releaseToken] then
 		SpellVFX.onChargeEnd(spellId, character)
 		return
 	end
 
-	local activeMana = character:GetAttribute("ActiveMana") or 0
-	if isOnCooldown(player, spellId, skill.Cooldown) or activeMana < skill.ManaCost then
+	if isOnCooldown(player, spellId, skill.Cooldown) then
 		SpellVFX.onChargeEnd(spellId, character)
 		return
 	end
 
-	if not spendActiveMana(character, skill.ManaCost) then
-		SpellVFX.onChargeEnd(spellId, character)
-		return
-	end
-
+	local manaCost = skill.ManaCost
 	manaSpentForRelease[releaseToken] = true
 	task.delay(60, function()
 		manaSpentForRelease[releaseToken] = nil
 	end)
+
+	if not spendActiveMana(character, manaCost) then
+		manaSpentForRelease[releaseToken] = nil
+		SpellVFX.onChargeEnd(spellId, character)
+		return
+	end
 
 	SpellVFX.onChargeEnd(spellId, character)
 	stampCombat(character)
@@ -280,13 +280,18 @@ CombatAction.OnServerEvent:Connect(function(player: Player, actionType: any)
 	end
 end)
 
--- Legacy remote: channeled spells (e.g. fireball) must NOT spend mana here — only ChannelSkill release does.
+-- Legacy remote: instant skills only. Channeled spells (in SkillSettings) use ChannelSkill release for mana.
 CastSkillEvent.OnServerEvent:Connect(function(player: Player, skillName: any)
 	if typeof(skillName) ~= "string" then
 		return
 	end
 
 	if SkillSettings.get(skillName) then
+		return
+	end
+
+	local cost = LEGACY_INSTANT_SKILL_COSTS[skillName]
+	if cost == nil then
 		return
 	end
 
@@ -299,14 +304,43 @@ CastSkillEvent.OnServerEvent:Connect(function(player: Player, skillName: any)
 		return
 	end
 
-	local skill = SkillSettings.get(skillName)
-	local cost = if skill then skill.ManaCost else 0
 	if not spendActiveMana(character, cost) then
 		return
 	end
 
 	stampCombat(character)
 end)
+
+local function bindPlayerLifecycle(player: Player)
+	local function onCharacterSpawned(character: Model)
+		clearChannel(player, character)
+
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		if not humanoid then
+			humanoid = character:WaitForChild("Humanoid", 5) :: Humanoid?
+		end
+		if humanoid then
+			humanoid.Died:Connect(function()
+				clearChannel(player, character)
+			end)
+		end
+	end
+
+	player.CharacterRemoving:Connect(function(character)
+		clearChannel(player, character)
+	end)
+
+	player.CharacterAdded:Connect(onCharacterSpawned)
+
+	if player.Character then
+		onCharacterSpawned(player.Character)
+	end
+end
+
+for _, player in Players:GetPlayers() do
+	bindPlayerLifecycle(player)
+end
+Players.PlayerAdded:Connect(bindPlayerLifecycle)
 
 Players.PlayerRemoving:Connect(function(player)
 	activeChannels[player] = nil
